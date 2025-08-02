@@ -109,11 +109,23 @@ const FileDiagram = ({ repoData, onNodeClick }) => {
         onNodeClick={onNodeClick}
         fitView
       >
-        {isMiniMapVisible && <MiniMap />}
+        {isMiniMapVisible && (
+          <MiniMap 
+            pannable
+            zoomable
+            nodeColor={(n) => {
+              if (n.data.fileData.type === 'tree') {
+                return '#667EEA';
+              }
+              return '#D1D5DB';
+            }}
+            maskColor="rgba(0, 0, 0, 0.7)"
+            backgroundColor="#4A5568"
+          />
+        )}
         <Controls />
         <Background variant="dots" gap={12} size={1} />
         
-        {/* Toggle button for the MiniMap */}
         <div 
           className="react-flow__controls-bottom-right" 
           style={{ 
