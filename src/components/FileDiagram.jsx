@@ -8,6 +8,7 @@ import ReactFlow, {
   addEdge,
 } from 'reactflow';
 
+// Move the style object outside the component to prevent re-creation
 const nodeStyle = {
   padding: '10px',
   border: '1px solid #667EEA',
@@ -26,24 +27,26 @@ const generateDiagram = (tree) => {
   const positionMap = {};
   let yOffset = 50;
 
-  tree.forEach((item, index) => {
+  tree.forEach((item) => {
     const pathParts = item.path.split('/');
     const name = pathParts[pathParts.length - 1];
     const isFolder = item.type === 'tree';
 
-    // Create a node for the current file/folder
     const node = {
       id: item.path,
       type: 'default',
       position: { x: pathParts.length * 200, y: yOffset },
-      data: { label: (
-        <div className="flex items-center gap-2">
-          <span className="text-xl">
-            {isFolder ? '📁' : '📄'}
-          </span>
-          <span>{name}</span>
-        </div>
-      ) },
+      data: { 
+        label: (
+          <div className="flex items-center gap-2">
+            <span className="text-xl">
+              {isFolder ? '📁' : '📄'}
+            </span>
+            <span>{name}</span>
+          </div>
+        ),
+        fileData: item 
+      },
       style: nodeStyle,
     };
     initialNodes.push(node);
@@ -51,7 +54,6 @@ const generateDiagram = (tree) => {
 
     yOffset += 70;
 
-    // Create an edge from the parent folder (if it exists)
     if (pathParts.length > 1) {
       const parentPath = pathParts.slice(0, -1).join('/');
       initialEdges.push({
@@ -63,8 +65,6 @@ const generateDiagram = (tree) => {
     }
   });
 
-  // Simple, fixed positioning for now. More complex layouts can be added later.
-  // This part ensures a consistent layout.
   const processedNodes = initialNodes.map(node => {
     const parentPath = node.id.split('/').slice(0, -1).join('/');
     const parentPosition = positionMap[parentPath];
@@ -80,9 +80,9 @@ const generateDiagram = (tree) => {
   return { nodes: processedNodes, edges: initialEdges };
 };
 
-const FileDiagram = ({ repoData }) => {
+const FileDiagram = ({ repoData, onNodeClick }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesState] = useEdgesState([]);
 
   useEffect(() => {
     if (repoData && repoData.length > 0) {
@@ -100,8 +100,9 @@ const FileDiagram = ({ repoData }) => {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onEdgesChange={onEdgesState}
         onConnect={onConnect}
+        onNodeClick={onNodeClick}
         fitView
       >
         <MiniMap />

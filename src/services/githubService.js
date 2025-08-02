@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const GITHUB_API_URL = 'https://api.github.com/repos';
+const BACKEND_API_URL = 'http://localhost:3001'; // Your backend server URL
 
 // Helper function to parse the GitHub URL
 export const parseGitHubUrl = (url) => {
@@ -19,31 +20,10 @@ export const parseGitHubUrl = (url) => {
 // Function to fetch the repository file tree
 export const getRepoTree = async (owner, repo) => {
   try {
-    // Step 1: Get the SHA of the latest commit on the default branch (e.g., 'main')
-    // Using `branches/main` is a good starting point, but a more robust solution
-    // would check for `master` if `main` fails. We'll stick to `main` for now.
-    const branchResponse = await axios.get(
-      `${GITHUB_API_URL}/${owner}/${repo}/branches/main`
-    );
-    const latestCommitSha = branchResponse.data.commit.sha;
-
-    if (!latestCommitSha) {
-      throw new Error('Could not find latest commit SHA for the main branch.');
-    }
-
-    // Step 2: Get the file tree using the latest commit SHA
     const treeResponse = await axios.get(
-      `${GITHUB_API_URL}/${owner}/${repo}/git/trees/${latestCommitSha}?recursive=1`
+      `${GITHUB_API_URL}/${owner}/${repo}/git/trees/main?recursive=1`
     );
-
-    if (treeResponse.data.truncated) {
-      console.warn('The repository is very large. The file tree has been truncated.');
-      // For a very large repo, this is where we'd add logic to handle
-      // sub-trees, but for now, we'll work with the truncated data.
-    }
-
     return treeResponse.data.tree;
-
   } catch (error) {
     console.error('Error fetching GitHub repository data:', error);
     throw error;
@@ -54,11 +34,22 @@ export const getRepoTree = async (owner, repo) => {
 export const getFileContent = async (owner, repo, path) => {
   try {
     const response = await axios.get(
-      `https://raw.githubusercontent.com/${owner}/${repo}/${latestCommitSha}/${path}`
+      `https://raw.githubusercontent.com/${owner}/${repo}/main/${path}`
     );
     return response.data;
   } catch (error) {
     console.error('Error fetching file content:', error);
+    throw error;
+  }
+};
+
+// Function to get a code description from your backend
+export const getCodeDescription = async (code) => {
+  try {
+    const response = await axios.post(`${BACKEND_API_URL}/analyze-code`, { code });
+    return response.data.description;
+  } catch (error) {
+    console.error('Error getting code description from backend:', error);
     throw error;
   }
 };
