@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -8,7 +8,6 @@ import ReactFlow, {
   addEdge,
 } from 'reactflow';
 
-// Move the style object outside the component to prevent re-creation
 const nodeStyle = {
   padding: '10px',
   border: '1px solid #667EEA',
@@ -20,7 +19,6 @@ const nodeStyle = {
   gap: '8px',
 };
 
-// A simple function to generate nodes and edges from the GitHub tree
 const generateDiagram = (tree) => {
   const initialNodes = [];
   const initialEdges = [];
@@ -81,16 +79,22 @@ const generateDiagram = (tree) => {
 };
 
 const FileDiagram = ({ repoData, onNodeClick }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesState] = useEdgesState([]);
-
-  useEffect(() => {
+  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     if (repoData && repoData.length > 0) {
-      const { nodes, edges } = generateDiagram(repoData);
-      setNodes(nodes);
-      setEdges(edges);
+      return generateDiagram(repoData);
     }
-  }, [repoData, setNodes, setEdges]);
+    return { nodes: [], edges: [] };
+  }, [repoData]);
+
+  // Use the memoized values directly to initialize the state
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // This effect is now only needed to handle updates to the diagram
+  useEffect(() => {
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
@@ -100,7 +104,7 @@ const FileDiagram = ({ repoData, onNodeClick }) => {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesState}
+        onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
         fitView
