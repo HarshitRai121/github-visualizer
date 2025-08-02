@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { parseGitHubUrl, getRepoTree, getFileContent, getCodeDescription } from './services/githubService';
 import FileDiagram from './components/FileDiagram';
-import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+import ReactMarkdown from 'react-markdown';
 import './App.css';
 
 const ANALYZABLE_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.html', '.css', '.json', '.md', '.txt'];
@@ -18,6 +18,8 @@ function App() {
   const [error, setError] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null); 
   const [isDescriptionLoading, setIsDescriptionLoading] = useState(false);
+  
+  const descriptionRef = useRef(null); // Ref for the description panel
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -45,7 +47,6 @@ function App() {
       }));
 
       setRepoData(fileData);
-      console.log('Fetched Repository Data:', fileData);
 
     } catch (err) {
       setError('Failed to fetch repository data. Please check the URL or try again later.');
@@ -72,6 +73,11 @@ function App() {
 
     setSelectedFile({ ...clickedFile, description: 'Loading...' });
     setIsDescriptionLoading(true);
+
+    // Scroll to the description panel on click
+    if (descriptionRef.current) {
+        descriptionRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
 
     const { owner, repo } = parseGitHubUrl(repoUrl);
 
@@ -159,7 +165,7 @@ function App() {
               <FileDiagram repoData={repoData} onNodeClick={handleNodeClick} />
             </div>
             
-            <div className="bg-gray-800 rounded-lg p-6 min-h-[600px] flex flex-col justify-start col-span-1">
+            <div ref={descriptionRef} className="bg-gray-800 rounded-lg p-6 min-h-[600px] flex flex-col justify-start col-span-1">
               <h2 className="text-xl font-bold mb-4">File Description</h2>
               {selectedFile ? (
                 <>
@@ -167,7 +173,6 @@ function App() {
                   {isDescriptionLoading ? (
                     <p className="text-blue-400 animate-pulse">Generating description...</p>
                   ) : (
-                    // Use ReactMarkdown to render the formatted text
                     <div className="prose prose-invert max-w-none text-gray-300">
                       <ReactMarkdown>
                         {selectedFile.description}

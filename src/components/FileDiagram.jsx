@@ -7,6 +7,7 @@ import ReactFlow, {
   useEdgesState,
   addEdge,
 } from 'reactflow';
+import 'reactflow/dist/style.css';
 
 const nodeStyle = {
   padding: '10px',
@@ -86,11 +87,10 @@ const FileDiagram = ({ repoData, onNodeClick }) => {
     return { nodes: [], edges: [] };
   }, [repoData]);
 
-  // Use the memoized values directly to initialize the state
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isMiniMapVisible, setIsMiniMapVisible] = useState(false);
 
-  // This effect is now only needed to handle updates to the diagram
   useEffect(() => {
     setNodes(initialNodes);
     setEdges(initialEdges);
@@ -99,7 +99,7 @@ const FileDiagram = ({ repoData, onNodeClick }) => {
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   return (
-    <div style={{ height: '600px', width: '100%' }}>
+    <div style={{ height: '60vh', width: '100%' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -109,9 +109,37 @@ const FileDiagram = ({ repoData, onNodeClick }) => {
         onNodeClick={onNodeClick}
         fitView
       >
-        <MiniMap />
+        {isMiniMapVisible && <MiniMap />}
         <Controls />
         <Background variant="dots" gap={12} size={1} />
+        
+        {/* Toggle button for the MiniMap */}
+        <div 
+          className="react-flow__controls-bottom-right" 
+          style={{ 
+            position: 'absolute',
+            bottom: '10px',
+            right: '10px',
+            zIndex: 10,
+          }}
+        >
+          <button 
+            onClick={() => setIsMiniMapVisible(!isMiniMapVisible)}
+            style={{
+              padding: '8px 12px',
+              backgroundColor: isMiniMapVisible ? '#667EEA' : '#4A5568',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+              transition: 'background-color 0.2s'
+            }}
+          >
+            {isMiniMapVisible ? 'Hide Map' : 'Show Map'}
+          </button>
+        </div>
       </ReactFlow>
     </div>
   );
