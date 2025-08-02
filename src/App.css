@@ -1,3 +1,7 @@
+@import 'reactflow/dist/style.css';
+
+/* You can add your custom styles here */
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
