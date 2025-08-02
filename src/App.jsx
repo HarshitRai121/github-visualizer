@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { parseGitHubUrl, getRepoTree, getFileContent, getCodeDescription } from './services/githubService';
 import FileDiagram from './components/FileDiagram';
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 import './App.css';
 
 const ANALYZABLE_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.py', '.java', '.c', '.cpp', '.h', '.html', '.css', '.json', '.md', '.txt'];
@@ -36,11 +37,10 @@ function App() {
     }
 
     try {
-      // Step 1: Only fetch the repository tree initially.
       const tree = await getRepoTree(owner, repo);
       const fileData = tree.map(item => ({
         ...item,
-        description: null, // Start with no description
+        description: null,
         content: null,
       }));
 
@@ -62,17 +62,14 @@ function App() {
     setSelectedFile(null);
   };
   
-  // This new function handles the click event and fetches the description
   const handleNodeClick = async (event, node) => {
     const clickedFile = repoData.find(file => file.path === node.id);
 
-    // Only process a click on files, not folders
     if (clickedFile.type !== 'blob') {
       setSelectedFile(null);
       return;
     }
 
-    // Set the selected file to immediately show its name and a loading state
     setSelectedFile({ ...clickedFile, description: 'Loading...' });
     setIsDescriptionLoading(true);
 
@@ -170,9 +167,12 @@ function App() {
                   {isDescriptionLoading ? (
                     <p className="text-blue-400 animate-pulse">Generating description...</p>
                   ) : (
-                    <p className="text-gray-300 whitespace-pre-line">
-                      {selectedFile.description}
-                    </p>
+                    // Use ReactMarkdown to render the formatted text
+                    <div className="prose prose-invert max-w-none text-gray-300">
+                      <ReactMarkdown>
+                        {selectedFile.description}
+                      </ReactMarkdown>
+                    </div>
                   )}
                 </>
               ) : (
