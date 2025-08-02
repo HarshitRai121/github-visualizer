@@ -19,7 +19,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null); 
   const [isDescriptionLoading, setIsDescriptionLoading] = useState(false);
   
-  const descriptionRef = useRef(null); // Ref for the description panel
+  const descriptionRef = useRef(null);
 
   const handleGenerate = async (e) => {
     e.preventDefault();
@@ -74,7 +74,6 @@ function App() {
     setSelectedFile({ ...clickedFile, description: 'Loading...' });
     setIsDescriptionLoading(true);
 
-    // Scroll to the description panel on click
     if (descriptionRef.current) {
         descriptionRef.current.scrollIntoView({ behavior: 'smooth' });
     }
@@ -169,11 +168,12 @@ function App() {
               <h2 className="text-xl font-bold mb-4">File Description</h2>
               {selectedFile ? (
                 <>
-                  <h3 className="text-lg font-semibold text-blue-400 mb-2">{selectedFile.path}</h3>
+                  {/* Added 'break-words' to prevent overflow on long file names */}
+                  <h3 className="text-lg font-semibold text-blue-400 mb-2 break-words">{selectedFile.path}</h3>
                   {isDescriptionLoading ? (
                     <p className="text-blue-400 animate-pulse">Generating description...</p>
                   ) : (
-                    <div className="prose prose-invert max-w-none text-gray-300">
+                    <div className="prose prose-invert max-w-none text-gray-300 max-h-96 overflow-y-auto thin-scrollbar">
                       <ReactMarkdown>
                         {selectedFile.description}
                       </ReactMarkdown>
